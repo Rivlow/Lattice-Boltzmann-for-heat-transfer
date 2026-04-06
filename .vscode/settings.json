@@ -1,0 +1,9 @@
+{
+    "iis.configDir": "",
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": [],
+    
+    "code-runner.executorMap": {"python": "C:\\Users\\lucas\\Anaconda3\\python.exe -u $fullFileName" },
+    "python.analysis.diagnosticSeverityOverrides": {"reportInvalidTypeForm": "none"}
+}
