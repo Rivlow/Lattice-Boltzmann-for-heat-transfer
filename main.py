@@ -64,12 +64,11 @@ g = ti.field(dtype=ti.f32, shape=(9, nx, ny))
 
 image_field = ti.Vector.field(3, dtype=ti.f32, shape=(gui_width, gui_height))
 
-# Définir les obstacles en ndarray (plat)
+# ------------ DEFINE OBSTACLES ------------------#
 obstacles_physical = np.array([
-    0.4, 0.6, 0.4, 0.6,  # carré central
-    # tu peux ajouter d'autres obstacles ici
+    0.4, 0.6, 0.4, 0.6,   # obstacle central
+    0.1, 0.2, 0.7, 0.8,   # autre obstacle
 ], dtype=np.float32)
-
 
 
 # Constants
@@ -81,27 +80,24 @@ c_list = [(0,0),(1,0),(0,1),(-1,0),(0,-1),(1,1),(-1,1),(-1,-1),(1,-1)]
 for i in range(9):
     c[i] = c_list[i]
 
-
-@ti.kernel
-def compute_speed(U:ti.template(), ux:ti.template(), uy:ti.template()):
-    for i, j in U:
-        U[i, j] = ti.sqrt(ux[i, j] ** 2 + uy[i, j] ** 2)
+#======================================#
+#              SIMULATION              #
+#======================================#
 
 # Initialisation
 Solver.initialize(rho, T, ux, uy, f, g, T0, w)
 
-# Boucle principale
+# Time loop
 for step in range(nt):
-    # Mise à jour LBM
+
     Solver.collide(rho, ux, uy, T, f, g, c, w, omega_f, omega_g, beta, gravity, T0)
     Solver.stream(f, g, c, rho, nx, ny)
     BoundaryCondition.apply_bc(f, g, rho, w, T_bottom, u_left, nx, ny, opp,
                             obstacles_physical, dx, dy)
+    
     Solver.macroscopic(rho, ux, uy, T, f, g, c)
+    Solver.compute_speed(U, ux, uy)
 
-    compute_speed(U, ux, uy)
-
-    # Remplir l'image de température (toujours)
     Renderer.fill_image(image_field, U, 0, 0.05, view_scale)
     gui.set_image(image_field)
 

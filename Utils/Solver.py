@@ -79,3 +79,9 @@ def macroscopic(rho: ti.template(), ux: ti.template(), uy: ti.template(),
         ux[i,j] = ux_loc / r
         uy[i,j] = uy_loc / r
         T[i,j] = temp
+
+
+@ti.kernel
+def compute_speed(U:ti.template(), ux:ti.template(), uy:ti.template()):
+    for i, j in U:
+        U[i, j] = ti.sqrt(ux[i, j] ** 2 + uy[i, j] ** 2)
