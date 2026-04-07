@@ -56,47 +56,14 @@ def stream(f: ti.template(), g: ti.template(), c: ti.template(), rho: ti.templat
             f[k, i, j] = f[k, ip, jp]
             g[k, i, j] = g[k, ip, jp]
 
-# Boundary + Obstacle
-@ti.kernel
-def apply_bc(f: ti.template(), g: ti.template(), rho: ti.template(),
-             w: ti.template(), T_bottom: float, u_left: float,
-             nx: int, ny: int, opp: ti.template()):
-    for j in range(ny):
-        rho_left = (f[0,0,j] + f[2,0,j] + f[4,0,j] + 2*(f[3,0,j] + f[6,0,j] + f[7,0,j])) / (1 - u_left)
-        f[1,0,j] = f[3,0,j] + 2/3 * rho_left * u_left
-        f[5,0,j] = f[7,0,j] + 0.5*(f[4,0,j]-f[2,0,j]) + 1/6*rho_left*u_left
-        f[8,0,j] = f[6,0,j] + 0.5*(f[2,0,j]-f[4,0,j]) + 1/6*rho_left*u_left
 
-        f[3,nx-1,j] = f[3,nx-2,j]
-        f[6,nx-1,j] = f[6,nx-2,j]
-        f[7,nx-1,j] = f[7,nx-2,j]
-
-    for i in range(nx):
-        f[2,i,0] = f[4,i,0]
-        f[5,i,0] = f[7,i,0]
-        f[6,i,0] = f[8,i,0]
-        g[2,i,0] = -g[4,i,0] + 2*w[2]*T_bottom
-        g[5,i,0] = -g[7,i,0] + 2*w[5]*T_bottom
-        g[6,i,0] = -g[8,i,0] + 2*w[6]*T_bottom
-
-        f[4,i,ny-1] = f[2,i,ny-1]
-        f[7,i,ny-1] = f[5,i,ny-1]
-        f[8,i,ny-1] = f[6,i,ny-1]
-        g[4,i,ny-1] = g[2,i,ny-1]
-        g[7,i,ny-1] = g[5,i,ny-1]
-        g[8,i,ny-1] = g[6,i,ny-1]
-
-    for i, j in rho:
-        if 40 <= i < 60 and 40 <= j < 60:
-            for k in ti.static(range(9)):
-                f[k,i,j] = f[opp[k],i,j]
-                g[k,i,j] = g[opp[k],i,j]
 
 # Macroscopic
 @ti.kernel
 def macroscopic(rho: ti.template(), ux: ti.template(), uy: ti.template(),
                 T: ti.template(), f: ti.template(), g: ti.template(),
                 c: ti.template()):
+    
     for i, j in rho:
         r = 0.0
         ux_loc = 0.0
